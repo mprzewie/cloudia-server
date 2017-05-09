@@ -1,22 +1,18 @@
-import akka.actor._
-
 /**
   * Created by marcin on 5/6/17.
   */
-class Receiver extends Actor{
-  override def receive: PartialFunction[Any, Unit] = {
-    case msg: String =>
-      println(s"Receiver received '$msg'")
-    case manifesto: FileManifesto =>
-      println(manifesto.name)
-      sender ! "ready"
 
+import akka.actor._
+import com.typesafe.config.ConfigFactory
+import communication.Cloudia
 
-  }
-}
 
 object Main extends App {
+
+  implicit val host = ConfigFactory.load().getString("akka.remote.netty.tcp.hostname")
+  implicit val port = ConfigFactory.load().getString("akka.remote.netty.tcp.port").toInt
+  implicit val chunkSize: Long = 1024
   val system = ActorSystem("cloudia-server")
-  val receiver = system.actorOf(Props[Receiver], name = "manifesto-receiver")
+  val cloudia = system.actorOf(Props(new Cloudia()), name = "receiver")
 
 }
