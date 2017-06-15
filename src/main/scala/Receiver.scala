@@ -3,12 +3,12 @@
   */
 
 import java.util
+
 import scala.collection.JavaConverters._
-
-
 import akka.actor._
 import communication.Node
 import com.typesafe.config.ConfigFactory
+import communication.Request
 
 import scalaj.http.{Http, HttpOptions}
 
@@ -16,20 +16,9 @@ import scalaj.http.{Http, HttpOptions}
 object Main extends App {
 
   def ping(url: String): Unit = {
-    val result = Http(url)
-      .postForm(
-        Seq(("systemName", systemName),
-          ("host", host),
-          ("port", port.toString),
-          ("nodeName", nodeName)
-        ))
-      .option(HttpOptions.readTimeout(10000)).asString
+    system.actorSelection(url).tell(Request(nodeName), cloudia)
     println(s"pinged $url")
   }
-
-  def host: String = ConfigFactory.load().getString("akka.remote.netty.tcp.hostname")
-
-  def port: Int = ConfigFactory.load().getInt("akka.remote.netty.tcp.port")
 
   def nodeName: String = ConfigFactory.load().getString("cloudia.nodeName")
 
@@ -43,13 +32,13 @@ object Main extends App {
   val system = ActorSystem(systemName)
   val cloudia = system.actorOf(Node.props(directory), name = nodeName)
   println("started")
-  clients.filter(_.startsWith("http://")).foreach(ping)
+  clients.filter(_.startsWith("akka.tcp://")).foreach(ping)
 
   do {
     println("Press Enter to ping all clients listed in application.conf")
     println("You can also enter additional url you want  to ping")
     val newUrl = scala.io.StdIn.readLine()
-    (newUrl :: clients).filter(_.startsWith("http://")).foreach(ping)
+    (newUrl :: clients).filter(_.startsWith("akka.tcp://")).foreach(ping)
 
   } while (true)
 }
