@@ -4,3 +4,5 @@ A simple application of [Cloudia nodes](https://github.com/mprzewie/cloudia-util
 
 ## documentation
 Coming soon.
+
+This is a part of a project for Scala Programming class by mgr. Łukasz Faber and dr. Roman Dębski at AGH UST.
